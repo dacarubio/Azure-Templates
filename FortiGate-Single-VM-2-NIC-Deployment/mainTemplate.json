@@ -39,7 +39,7 @@
     },
     "instanceType": {
       "type": "string",
-      "defaultValue": "Standard_D2_v2",
+      "defaultValue": "Standard_F2",
       "metadata": {
         "description": "Virtual Machine size selection"
       }
@@ -112,14 +112,14 @@
         "description": "Virtual network address space in CIDR notation, example: 10.2.0.0/16"
       }
     },
-    "Subnet1Name": {
+    "EntrySubnetName": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Subnet 1 Name"
       }
     },
-    "Subnet1Prefix": {
+    "EntrySubnetPrefix": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
@@ -132,14 +132,14 @@
         "description": "Static IP from subnet 1 for port1 of the FortiGate virtual appliance.  Remember Azure reserves the first 3 IPs in each subnet.  When using an exising vnet, verify that this address is not already assigned, example: 10.2.1.4"
       }
     },
-    "Subnet2Name": {
+    "TransitSubnet": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Subnet 2 Name"
       }
     },
-    "Subnet2Prefix": {
+    "TransitSubnetPrefix": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
@@ -150,6 +150,20 @@
       "type": "string",
       "metadata": {
         "description": "Static IP from subnet 2 for port1 of the FortiGate virtual appliance.  Remember Azure reserves the first 3 IPs in each subnet.  When using an exising vnet, verify that this address is not already assigned, example: 10.2.2.4"
+      }
+    },
+    "ProtectedSubnet": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Protected Subnet"
+      }
+    },
+    "ProtectedSubnetPrefix": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Protected Subnet Prefix in CIDR notation, example: 10.2.2.0/24"
       }
     },
     "FortinetTags": {
@@ -172,18 +186,22 @@
     "vmSize": "[parameters('instanceType')]",
 
     "VNetName": "[parameters('vnetName')]",
-    "Subnet1Name": "[parameters('Subnet1Name')]",
-    "Subnet2Name": "[parameters('Subnet2Name')]",
+    "EntrySubnetName": "[parameters('EntrySubnetName')]",
+    "TransitSubnet": "[parameters('TransitSubnet')]",
     "vnetID": "[resourceId(parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
-    "subnet1Ref": "[concat(variables('vnetID'),'/subnets/', variables('Subnet1Name'))]",
-    "subnet2Ref": "[concat(variables('vnetID'),'/subnets/', variables('Subnet2Name'))]",
+    "EntrySubnetRef": "[concat(variables('vnetID'),'/subnets/', variables('EntrySubnetName'))]",
+    "TransitSubnetRef": "[concat(variables('vnetID'),'/subnets/', variables('TransitSubnet'))]",
+    "ProtectedSubnetRef": "[concat(variables('vnetID'),'/subnets/', variables('ProtectedSubnet'))]",
+
 
     "VNetAddressPrefix": "[parameters('vnetAddressPrefix')]",
-    "Subnet1Prefix": "[parameters('Subnet1Prefix')]",
-    "Subnet2Prefix": "[parameters('Subnet2Prefix')]",
+    "EntrySubnetPrefix": "[parameters('EntrySubnetPrefix')]",
+    "TransitSubnetPrefix": "[parameters('TransitSubnetPrefix')]",
+    "ProtectedSubnetPrefix": "[parameters('ProtectedSubnetPrefix')]",
 
-    "routeTable1Name": "[concat(parameters('FortiGateName'), '-', parameters('Subnet1Name'),'-routes')]",
-    "routeTable2Name": "[concat(parameters('FortiGateName'), '-', parameters('Subnet2Name'),'-routes')]",
+    "routeTable1Name": "[concat(parameters('FortiGateName'), '-', parameters('EntrySubnetName'),'-routes')]",
+    "routeTable2Name": "[concat(parameters('FortiGateName'), '-', parameters('TransitSubnet'),'-routes')]",
+    "routeTable3Name": "[concat(parameters('FortiGateName'), '-', parameters('ProtectedSubnet'),'-routes')]",
 
     "FGDMZAddress": "[parameters('fortiGateIP2')]",
     "FGPubFacingAddress": "[parameters('fortiGateIP1')]",
@@ -231,9 +249,9 @@
       "properties": {
         "routes": [
           {
-            "name": "[concat('to', '-', parameters('Subnet2Name'))]",
+            "name": "[concat('to', '-', parameters('TransitSubnet'))]",
             "properties": {
-              "addressPrefix": "[variables('Subnet2Prefix')]",
+              "addressPrefix": "[variables('TransitSubnetPrefix')]",
               "nextHopType": "VirtualAppliance",
               "nextHopIpAddress": "[variables('FGPubFacingAddress')]"
             }
@@ -252,9 +270,38 @@
       "properties": {
         "routes": [
           {
-            "name": "[concat('to', '-', parameters('Subnet1Name'))]",
+            "name": "[concat('to', '-', parameters('EntrySubnetName'))]",
             "properties": {
-              "addressPrefix": "[variables('Subnet1Prefix')]",
+              "addressPrefix": "[variables('EntrySubnetPrefix')]",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIpAddress": "[variables('FGDMZAddress')]"
+            }
+          },
+          {
+            "name": "to-Internet",
+            "properties": {
+              "AddressPrefix": "0.0.0.0/0",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIPAddress": "[variables('FGDMZAddress')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/routeTables",
+      "name": "[variables('routeTable3Name')]",
+      "tags": {
+       "provider": "[toUpper(parameters('FortinetTags').provider)]"
+      },
+      "apiVersion": "[variables('apiVer')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "routes": [
+          {
+            "name": "[concat('to', '-', parameters('EntrySubnetName'))]",
+            "properties": {
+              "addressPrefix": "[variables('EntrySubnetPrefix')]",
               "nextHopType": "VirtualAppliance",
               "nextHopIpAddress": "[variables('FGDMZAddress')]"
             }
@@ -295,16 +342,22 @@
             "value": "[parameters('vnetAddressPrefix')]"
           },
           "OutsideSubnetName": {
-            "value": "[parameters('Subnet1Name')]"
+            "value": "[parameters('EntrySubnetName')]"
           },
-          "subnet1AddressPrefix": {
-            "value": "[parameters('Subnet1Prefix')]"
+          "EntrySubnetAddressPrefix": {
+            "value": "[parameters('EntrySubnetPrefix')]"
           },
           "DMZSubnetName": {
-            "value": "[parameters('Subnet2Name')]"
+            "value": "[parameters('TransitSubnet')]"
           },
-          "subnet2AddressPrefix": {
-            "value": "[parameters('Subnet2Prefix')]"
+          "TransitSubnetAddressPrefix": {
+            "value": "[parameters('TransitSubnetPrefix')]"
+          },
+          "ProtectedSubnetName": {
+            "value": "[parameters('TransitSubnet')]"
+          },
+          "ProtectedSubnetAddressPrefix": {
+            "value": "[parameters('TransitSubnetPrefix')]"
           },
           "vnetResourceGroup": {
             "value": "[parameters('vnetResourceGroup')]"
@@ -314,6 +367,9 @@
           },
           "routeTable2Name": {
             "value": "[variables('routeTable2Name')]"
+          },
+          "routeTable3Name": {
+            "value": "[variables('routeTable3Name')]"
           },
           "FortinetTags": {
             "value": "[parameters('FortinetTags')]"
@@ -356,8 +412,8 @@
           "FGPubFacingAddress": {
             "value": "[variables('FGPubFacingAddress')]"
           },
-          "subnet1Ref": {
-            "value": "[variables('subnet1Ref')]"
+          "EntrySubnetRef": {
+            "value": "[variables('EntrySubnetRef')]"
           },
           "network_NIC_fg11_Name": {
             "value": "[variables('network_NIC_fg11_Name')]"
@@ -387,7 +443,7 @@
               "privateIPAllocationMethod": "Static",
               "privateIPAddress": "[variables('FGDMZAddress')]",
               "subnet": {
-                "id": "[variables('subnet2Ref')]"
+                "id": "[variables('TransitSubnetRef')]"
               }
             }
           }
