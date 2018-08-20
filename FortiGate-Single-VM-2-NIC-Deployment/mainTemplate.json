@@ -112,7 +112,7 @@
         "description": "Virtual network address space in CIDR notation, example: 10.2.0.0/16"
       }
     },
-    "EntrySubnetName": {
+    "EntrySubnet": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
@@ -186,11 +186,11 @@
     "vmSize": "[parameters('instanceType')]",
 
     "VNetName": "[parameters('vnetName')]",
-    "EntrySubnetName": "[parameters('EntrySubnetName')]",
+    "EntrySubnet": "[parameters('EntrySubnet')]",
     "TransitSubnet": "[parameters('TransitSubnet')]",
     "ProtectedSubnet": "[parameters('ProtectedSubnet')]",
     "vnetID": "[resourceId(parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
-    "EntrySubnetRef": "[concat(variables('vnetID'),'/subnets/', variables('EntrySubnetName'))]",
+    "EntrySubnetRef": "[concat(variables('vnetID'),'/subnets/', variables('EntrySubnet'))]",
     "TransitSubnetRef": "[concat(variables('vnetID'),'/subnets/', variables('TransitSubnet'))]",
     "ProtectedSubnetRef": "[concat(variables('vnetID'),'/subnets/', variables('ProtectedSubnet'))]",
 
@@ -200,7 +200,7 @@
     "TransitSubnetPrefix": "[parameters('TransitSubnetPrefix')]",
     "ProtectedSubnetPrefix": "[parameters('ProtectedSubnetPrefix')]",
 
-    "routeTable1Name": "[concat(parameters('FortiGateName'), '-', parameters('EntrySubnetName'),'-routes')]",
+    "routeTable1Name": "[concat(parameters('FortiGateName'), '-', parameters('EntrySubnet'),'-routes')]",
     "routeTable2Name": "[concat(parameters('FortiGateName'), '-', parameters('TransitSubnet'),'-routes')]",
     "routeTable3Name": "[concat(parameters('FortiGateName'), '-', parameters('ProtectedSubnet'),'-routes')]",
 
@@ -271,7 +271,7 @@
       "properties": {
         "routes": [
           {
-            "name": "[concat('to', '-', parameters('EntrySubnetName'))]",
+            "name": "[concat('to', '-', parameters('EntrySubnet'))]",
             "properties": {
               "addressPrefix": "[variables('EntrySubnetPrefix')]",
               "nextHopType": "VirtualAppliance",
@@ -300,7 +300,7 @@
       "properties": {
         "routes": [
           {
-            "name": "[concat('to', '-', parameters('EntrySubnetName'))]",
+            "name": "[concat('to', '-', parameters('EntrySubnet'))]",
             "properties": {
               "addressPrefix": "[variables('EntrySubnetPrefix')]",
               "nextHopType": "VirtualAppliance",
@@ -324,7 +324,8 @@
       "apiVersion": "2015-01-01",
       "dependsOn": [
         "[concat('Microsoft.Network/routeTables/', variables('routeTable1Name'))]",
-        "[concat('Microsoft.Network/routeTables/', variables('routeTable2Name'))]"
+        "[concat('Microsoft.Network/routeTables/', variables('routeTable2Name'))]",
+        "[concat('Microsoft.Network/routeTables/', variables('routeTable3Name'))]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -342,23 +343,23 @@
           "vnetAddressPrefix": {
             "value": "[parameters('vnetAddressPrefix')]"
           },
-          "OutsideSubnetName": {
-            "value": "[parameters('EntrySubnetName')]"
+          "EntrySubnetName": {
+            "value": "[parameters('EntrySubnet')]"
           },
-          "EntrySubnetAddressPrefix": {
+          "EntrySubnetPrefix": {
             "value": "[parameters('EntrySubnetPrefix')]"
           },
-          "DMZSubnetName": {
+          "TransitSubnetName": {
             "value": "[parameters('TransitSubnet')]"
           },
-          "TransitSubnetAddressPrefix": {
+          "TransitSubnetPrefix": {
             "value": "[parameters('TransitSubnetPrefix')]"
           },
           "ProtectedSubnetName": {
-            "value": "[parameters('TransitSubnet')]"
+            "value": "[parameters('ProtectedSubnet')]"
           },
-          "ProtectedSubnetAddressPrefix": {
-            "value": "[parameters('TransitSubnetPrefix')]"
+          "ProtectedSubnetPrefix": {
+            "value": "[parameters('ProtectedSubnetPrefix')]"
           },
           "vnetResourceGroup": {
             "value": "[parameters('vnetResourceGroup')]"

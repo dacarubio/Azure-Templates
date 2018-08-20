@@ -26,25 +26,25 @@
         "description": "Virtual Network Address Prefix (i.e. CIDR)"
       }
     },
-    "OutsideSubnetName": {
+    "EntrySubnetName": {
       "type": "string",
       "metadata": {
         "description": "Server will be deployed into this subnet within the Virtual Network"
       }
     },
-    "EntrySubnetAddressPrefix": {
+    "EntrySubnetPrefix": {
       "type": "string",
       "metadata": {
         "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
       }
     },
-    "DMZSubnetName": {
+    "TransitSubnetName": {
       "type": "string",
       "metadata": {
         "description": "Server will be deployed into this subnet within the Virtual Network"
       }
     },
-    "TransitSubnetAddressPrefix": {
+    "TransitSubnetPrefix": {
       "type": "string",
       "metadata": {
         "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
@@ -56,7 +56,7 @@
         "description": "Server will be deployed into this subnet within the Virtual Network"
       }
     },
-    "ProtectedSubnetAddressPrefix": {
+    "ProtectedSubnetPrefix": {
       "type": "string",
       "metadata": {
         "description": "Virtual Network subnet Address Prefix (i.e. CIDR)"
@@ -77,8 +77,9 @@
   },
   "variables": {
     "vnetID": "[resourceId(parameters('vnetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
-    "subnet1ID": "[concat(variables('vnetID'),'/subnets/',parameters('OutsideSubnetName'))]",
-    "subnet2ID": "[concat(variables('vnetID'),'/subnets/',parameters('DMZSubnetName'))]",
+    "subnet1ID": "[concat(variables('vnetID'),'/subnets/',parameters('EntrySubnetName'))]",
+    "subnet2ID": "[concat(variables('vnetID'),'/subnets/',parameters('TransitSubnetName'))]",
+    "subnet3ID": "[concat(variables('vnetID'),'/subnets/',parameters('ProtectedSubnetName'))]",
     "routeTable1Id": "[resourceId('Microsoft.Network/routeTables',parameters('routeTable1Name'))]",
     "routeTable2Id": "[resourceId('Microsoft.Network/routeTables',parameters('routeTable2Name'))]",
     "routeTable3Id": "[resourceId('Microsoft.Network/routeTables',parameters('routeTable3Name'))]",
@@ -101,18 +102,18 @@
         },
         "subnets": [
           {
-            "name": "[parameters('OutsideSubnetName')]",
+            "name": "[parameters('EntrySubnetName')]",
             "properties": {
-              "addressPrefix": "[parameters('subnet1AddressPrefix')]",
+              "addressPrefix": "[parameters('EntrySubnetPrefix')]",
               "routeTable": {
                 "id": "[variables('routeTable1Id')]"
               }
             }
           },
           {
-            "name": "[parameters('DMZSubnetName')]",
+            "name": "[parameters('TransitSubnetName')]",
             "properties": {
-              "addressPrefix": "[parameters('Subnet2AddressPrefix')]",
+              "addressPrefix": "[parameters('TransitSubnetPrefix')]",
               "routeTable": {
                 "id": "[variables('routeTable2Id')]"
               }
@@ -121,7 +122,7 @@
           {
             "name": "[parameters('ProtectedSubnetName')]",
             "properties": {
-              "addressPrefix": "[parameters('ProtectedSubnetAddressPrefix')]",
+              "addressPrefix": "[parameters('ProtectedSubnetPrefix')]",
               "routeTable": {
                 "id": "[variables('routeTable3Id')]"
               }

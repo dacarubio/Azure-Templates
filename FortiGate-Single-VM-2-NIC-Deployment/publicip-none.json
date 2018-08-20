@@ -44,7 +44,7 @@
         "description": "Outside address of FortiGate"
       }
     },
-    "subnet1Ref": {
+    "EntrySubnetRef": {
       "type": "string",
       "metadata": {
         "description": "subnet 1 reference ID"
@@ -80,7 +80,7 @@
               "privateIPAllocationMethod": "Static",
               "privateIPAddress": "[parameters('FGPubFacingAddress')]",
               "subnet": {
-                "id": "[parameters('subnet1Ref')]"
+                "id": "[parameters('EntrySubnetRef')]"
               }
             }
           }
