@@ -107,61 +107,63 @@
     },
     "vnetAddressPrefix": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "10.0.0.0/16",
       "metadata": {
         "description": "Virtual network address space in CIDR notation, example: 10.2.0.0/16"
       }
     },
     "EntrySubnet": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "EntrySubnet",
       "metadata": {
         "description": "Subnet 1 Name"
       }
     },
     "EntrySubnetPrefix": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "10.0.1.0/24",
       "metadata": {
         "description": "Subnet 1 Prefix in CIDR notation (if using public IP, this will be the 'WAN' or external port), example: 10.2.1.0/24"
       }
     },
     "fortiGateIP1": {
       "type": "string",
+      "defaultValue": "10.0.1.4",
       "metadata": {
         "description": "Static IP from subnet 1 for port1 of the FortiGate virtual appliance.  Remember Azure reserves the first 3 IPs in each subnet.  When using an exising vnet, verify that this address is not already assigned, example: 10.2.1.4"
       }
     },
     "TransitSubnet": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "Transit",
       "metadata": {
         "description": "Subnet 2 Name"
       }
     },
     "TransitSubnetPrefix": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "10.0.2.0/24",
       "metadata": {
         "description": "Subnet 2 Prefix in CIDR notation (if using public IP, this will be the 'WAN' or external port), example: 10.2.2.0/24"
       }
     },
     "fortiGateIP2": {
       "type": "string",
+      "defaultValue": "10.0.2.4",
       "metadata": {
         "description": "Static IP from subnet 2 for port1 of the FortiGate virtual appliance.  Remember Azure reserves the first 3 IPs in each subnet.  When using an exising vnet, verify that this address is not already assigned, example: 10.2.2.4"
       }
     },
     "ProtectedSubnet": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "ProtectedSubnet",
       "metadata": {
         "description": "Protected Subnet"
       }
     },
     "ProtectedSubnetPrefix": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "10.0.3.0/24",
       "metadata": {
         "description": "Protected Subnet Prefix in CIDR notation, example: 10.2.2.0/24"
       }
